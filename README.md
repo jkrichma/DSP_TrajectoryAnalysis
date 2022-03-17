@@ -18,7 +18,7 @@ These scripts will take raw subject trajectory data (rd_examples.csv) from the B
 	rd_examples.csv
 
 These scripts are path planning algorithms to analyze trajectories. They include a survey strategy, route strategy, and topological strategy to plan paths. The topological strategy uses landmarks to create a topology. Also included are combinations of these strategies. For example, routeSurveyStrategy starts on the route and switches to a survey strategy around halfway to reach the goal. More details can be found in Krichmar and He, 2022.
-	
+`
 	routeStrategy.m
 	routeSurveyStrategy.m
 	runSubjectTrials.m
