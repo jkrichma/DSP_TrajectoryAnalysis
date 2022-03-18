@@ -10,7 +10,7 @@ In this paper, the DSP data from prior studies (Boone et al., 2018, 2019) were a
 
 
 
-These scripts will take raw subject trajectory data (rd_examples.csv) from the Boone et al., 2018, 2019 studies and convert them to a 13x13 grid environment suitable for analyzing with path planning algorithms. Note that these scripts are specific to the Boone et al. studies and would need to be altered for different studies.
+These scripts will take raw subject trajectory data (rd_examples.csv) from the Boone et al., 2018, 2019 studies and convert them to a 13x13 grid environment suitable for analyzing with path planning algorithms. Note that these scripts are specific to the Boone et al. studies and would need to be altered for different studies. The CSV file has a header with first column is subject id, the second column is trial type (0=goto goal; 1=shortcut), the third column is trial id, then the following columns are for time, x, and z values
 
 	createSubjectTrialData.m
 	createTrajectory.m
