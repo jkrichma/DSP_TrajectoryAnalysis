@@ -38,7 +38,7 @@
 % @param mixed - run the combination of strategies if true. Only 4 "pure" strategies otherwise.
 % @param dFD - display the table of Frechet distances between subject and strategies for all trials.
 % @param dTrialNum - display paths and distance information for the given trial number.  If set to 999, all trials will be displayed.
-function fdTable = runSubjectTrials(subjectNum, mixed, dFD, dTrialNum)
+function [fdTable,trialNum] = runSubjectTrials(subjectNum, mixed, dFD, dTrialNum, trajDir)
 
 mxy = load('dsp_coords.txt');
 lm = load('lmOnPath.txt');
@@ -57,7 +57,7 @@ DISPLAY_ALL_TRIALS = 999;
 tinx = 0;
 trialNum = zeros(1,25);
 for t = 1:25
-    if isfile(['s', num2str(subjectNum), 't', num2str(t), '.txt'])
+    if isfile([trajDir, filesep, 's', num2str(subjectNum), 't', num2str(t), '.txt'])
         tinx = tinx + 1;
         trialNum(tinx) = t;
     end
@@ -74,9 +74,9 @@ for i=1:tinx
         figure;
     end
     if mixed
-        [fdTable(i,1), fdTable(i,2), fdTable(i,3), fdTable(i,4), fdTable(i,5), fdTable(i,6), fdTable(i,7), fdTable(i,8), fdTable(i,9), fdTable(i,10), fdTable(i,11), fdTable(i,12), fdTable(i,13), fdTable(i,14)] = runTrialMixStrat (subjectNum, trialNum(i), trials, map, rte, lm, dFlag);
+        [fdTable(i,1), fdTable(i,2), fdTable(i,3), fdTable(i,4), fdTable(i,5), fdTable(i,6), fdTable(i,7), fdTable(i,8), fdTable(i,9), fdTable(i,10), fdTable(i,11), fdTable(i,12), fdTable(i,13), fdTable(i,14)] = runTrialMixStrat (subjectNum, trialNum(i), trials, map, rte, lm, dFlag, trajDir);
     else
-        [fdTable(i,1), fdTable(i,2), fdTable(i,3), fdTable(i,4)] = runTrial (subjectNum, trialNum(i), trials, map, rte, lm, dFlag);
+        [fdTable(i,1), fdTable(i,2), fdTable(i,3), fdTable(i,4)] = runTrial (subjectNum, trialNum(i), trials, map, rte, lm, dFlag, trajDir);
     end
 end
 

@@ -53,9 +53,9 @@
 % @return fdTopo - distance between subject path and topological strategy
 % @return fdRt - distance between subject path and route strategy
 % @return fdRtRev - distance between subject path and route strategy in reverse.
-function [fdSurv, fdTopo, fdRt, fdRtRev] = runTrial (subNum, trialNum, trials, map, rte, lm, dFlag)
+function [fdSurv, fdTopo, fdRt, fdRtRev] = runTrial (subNum, trialNum, trials, map, rte, lm, dFlag, trajDir)
 
-subPath = load(['s', num2str(subNum), 't', num2str(trialNum), '.txt']);
+subPath = load([trajDir filesep 's', num2str(subNum), 't', num2str(trialNum), '.txt']);
 t = find(trials(:,1) == trialNum);
 
 rows = 3;

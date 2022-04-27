@@ -43,7 +43,7 @@
 % @param map - grid map coordinates.
 % @param rd - raw data file containing multiple subjects and trials.
 % @param dFlag - will display trajectories if true.
-function createTrajectory (sNum, map, rd, dFlag)
+function createTrajectory (trajDir, sNum, map, rd, dFlag)
 
 % get all the entries matching the subject number
 sdat = rd(rd(:,1) == sNum,:);
@@ -58,7 +58,7 @@ for i = 1:25
         % WARNING: these steps are specific to He & Krichmar using DSP data
         % from the Hegarty lab.  It also assumes a 13x13 grid.  You will
         % need to change this to create files for other studies.
-        fid = fopen(['s', num2str(sNum), 't', num2str(i), '.txt'], 'w');
+        fid = fopen([trajDir, filesep, 's', num2str(sNum), 't', num2str(i), '.txt'], 'w');
         pinx = 1;
         px(pinx) = floor(sdat(inx(1),5)/20)+2;
         py(pinx) = 14-(floor(sdat(inx(1),6)/20)+2);

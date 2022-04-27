@@ -42,7 +42,7 @@
 % @param fnMapCoords - file name for grid map coordinates.
 % @param fnMapLMs - file name for landmark coordinates.
 %
-function createSubjectTrialData (fnSubjectData, fnMapCoords, fnMapLMs)
+function createSubjectTrialData (fnSubjectData, fnMapCoords, fnMapLMs, trajDir)
 
 mxy = load(fnMapCoords);
 lm = load(fnMapLMs);
@@ -53,13 +53,13 @@ disp('Loading raw data...')
 % matrix to make the calculations easier.
 rdTbl=readtable(fnSubjectData);
 rd = table2array(rdTbl);
-
+subs = unique(rd(:,1));
 inx = 0;
-for i=1:size(rd,1)
+for i=1:size(subs,1)
     inx = inx + 1;
-    sNum = rd(i,1);
-    createTrajectory (sNum, map, rd, 0);
-    disp([num2str(round(100*(i/size(rd,1)))), '%: Getting trials for Subject ', num2str(sNum), ' # ', num2str(inx)])
+    sNum = subs(i,1);
+    createTrajectory (trajDir, sNum, map, rd, 0);
+    disp([num2str(round(100*(i/size(subs,1)))), '%: Getting trials for Subject ', num2str(sNum), ' # ', num2str(inx)])
 end
 
 end
