@@ -40,19 +40,36 @@
 %
 % @param createTrials - will create subject trajectories for trials if
 %   true. This takes a long time but only needs to be run once.
+% @param templateDirectory - the directory to find the templates required.
 
-function repExamples (createTrials)
+function repExamples (createTrials,templateDir)
+
+cd(templateDir);
+testDir = horzcat(templateDir,filesep,'..',filesep,'tests',filesep);
 
 if createTrials
-    createSubjectTrialData ('rd_examples.csv', 'dsp_coords.txt', 'lmOnPath.txt');
+    dspVersion = '1';
+    createSubjectTrialData (horzcat(testDir,'rd_examples_version_',dspVersion,'.csv'),...,
+                            horzcat(templateDir,filesep,'..',filesep,'templates', filesep,'dsp_coords_version_',dspVersion,'.txt'),...,
+                            horzcat(templateDir,filesep,'..',filesep,'templates', filesep,'lmOnPath_version_',dspVersion,'.txt'),...,
+                            testDir);
+                        
+    dspVersion = '2';
+    createSubjectTrialData (horzcat(testDir,'rd_examples_version_',dspVersion,'.csv'),...,
+                            horzcat(templateDir,filesep,'..',filesep,'templates', filesep,'dsp_coords_version_',dspVersion,'.txt'),...,
+                            horzcat(templateDir,filesep,'..',filesep,'templates', filesep,'lmOnPath_version_',dspVersion,'.txt'),...,
+                            testDir);
 end
 
 % figure 3 - always survey (subject 604)
-runSubjectTrials(604,0,1,13);
+runSubjectTrials(604,0,1,13,testDir,1);
 
 % figure 4 - always route (subject 324BOSS)
-runSubjectTrials(3241,0,1,13);
+runSubjectTrials(3241,0,1,13,testDir,1);
 
 % figure 7 - route then survey (subject 416BOSS)
-runSubjectTrials(4161,1,1,3);
+runSubjectTrials(4161,1,1,3,testDir,1);
+
+% The second version of the DSP example
+runSubjectTrials(205,0,1,3,testDir,2);
 
