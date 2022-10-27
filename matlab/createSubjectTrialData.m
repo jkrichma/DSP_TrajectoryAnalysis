@@ -48,6 +48,8 @@ mxy = load(fnMapCoords);
 lm = load(fnMapLMs);
 map = getMap(mxy,lm,0);
 disp('Loading raw data...')
+dspVersion = split(fnSubjectData,'_');
+dspVersion = dspVersion{end}(1);
 
 % Read the CSV file as a table bcuz it has a header. Then convert it to a
 % matrix to make the calculations easier.
@@ -58,7 +60,7 @@ inx = 0;
 for i=1:size(subs,1)
     inx = inx + 1;
     sNum = subs(i,1);
-    createTrajectory (trajDir, sNum, map, rd, 0);
+    createTrajectory (trajDir, sNum, dspVersion, map, rd, 0);
     disp([num2str(round(100*(i/size(subs,1)))), '%: Getting trials for Subject ', num2str(sNum), ' # ', num2str(inx)])
 end
 

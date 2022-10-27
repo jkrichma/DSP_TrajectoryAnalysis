@@ -57,21 +57,24 @@ subs = unique(subs);
 
 % Initiate the table that will store all data for all subjects.
 % Each row will be that subject's strategy scores for each trial.
-colnames = {'subject','trial','Sur', 'Top', 'Rte', 'Rev'};
-fdTableAll = table([],[],[],[],[],[],'VariableNames',colnames);
+colnames = {'subject','trial','Sur', 'Top', 'Rte', 'Rev','dspVersion'};
+fdTableAll = table([],[],[],[],[],[],[],'VariableNames',colnames);
 
 % Loop through each subject, grab their fdTable (strats) and a list of
 % their trial numbers. Convert this to a form that can be stored easily as
 % a CSV. 
-for i = 1:length(subs)
-    [strats,trialNum] = runSubjectTrials(subs(i), mixed, 0, dTrialNum, trajDir);
-    
-    ids = repmat({num2str(subs(i))},size(strats,1),1);
-    trialNum = nonzeros(trialNum);
-    fdTable = table(ids, trialNum, strats(:,1), strats(:,2), strats(:,3), strats(:,4),'VariableNames',colnames);
-    fdTableAll = [fdTableAll; fdTable];
-    
-    fprintf('Subject %d complete\n', subs(i));
+for dspVersion = 1:2
+    for i = 1:length(subs)
+        [strats,trialNum] = runSubjectTrials(subs(i), mixed, 0, dTrialNum, trajDir, dspVersion);
+        
+        ids = repmat({num2str(subs(i))},size(strats,1),1);
+        dspVersions = repmat({num2str(dspVersion)},size(strats,1),1);
+        trialNum = nonzeros(trialNum);
+        fdTable = table(ids, trialNum, strats(:,1), strats(:,2), strats(:,3), strats(:,4),dspVersions,'VariableNames',colnames);
+        fdTableAll = [fdTableAll; fdTable];
+        
+        fprintf('Subject %d complete\n', subs(i));
+    end
 end
 
 % Save the file to the output folder.

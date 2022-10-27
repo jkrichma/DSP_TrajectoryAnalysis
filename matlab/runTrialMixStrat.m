@@ -66,9 +66,9 @@
 % @return fdRteRevTopo - distance between subject path and route in reverse then topological strategy.
 % @return fdSurvTopo - distance between subject path and survey then topological strategy.
 % @return fdTopoSurv - distance between subject path and topological then survey strategy.
-function [fdSurv, fdTopo, fdRt, fdRtRev, fdSurvRte, fdTopoRte, fdSurvRteRev, fdTopoRteRev, fdRteSurv, fdRteTopo, fdRteRevSurv, fdRteRevTopo, fdSurvTopo, fdTopoSurv] = runTrialMixStrat (subNum, trialNum, trials, map, rte, lm, dFlag)
+function [fdSurv, fdTopo, fdRt, fdRtRev, fdSurvRte, fdTopoRte, fdSurvRteRev, fdTopoRteRev, fdRteSurv, fdRteTopo, fdRteRevSurv, fdRteRevTopo, fdSurvTopo, fdTopoSurv] = runTrialMixStrat (subNum, trialNum, trials, map, rte, lm, dFlag, dspVersion)
 
-subPath = load(['s', num2str(subNum), 't', num2str(trialNum), '.txt']);
+subPath = load(['s', num2str(subNum), 't', num2str(trialNum), 'v', dspVersion, '.txt']);
 t = find(trials(:,1) == trialNum);
 
 rows = 2;

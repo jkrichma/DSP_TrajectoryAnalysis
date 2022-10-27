@@ -38,12 +38,14 @@
 %
 % The files contain the coordinates of the subject trajectory compatible
 % with the 2D grid map.
-%
+
+% @param trajDir - trajectory directory
 % @param sNum - subject number.
+% @param dspVersion - version of DSP (1 or 2)
 % @param map - grid map coordinates.
 % @param rd - raw data file containing multiple subjects and trials.
 % @param dFlag - will display trajectories if true.
-function createTrajectory (trajDir, sNum, map, rd, dFlag)
+function createTrajectory (trajDir, sNum, dspVersion, map, rd, dFlag)
 
 % get all the entries matching the subject number
 sdat = rd(rd(:,1) == sNum,:);
@@ -58,23 +60,46 @@ for i = 1:25
         % WARNING: these steps are specific to He & Krichmar using DSP data
         % from the Hegarty lab.  It also assumes a 13x13 grid.  You will
         % need to change this to create files for other studies.
-        fid = fopen([trajDir, filesep, 's', num2str(sNum), 't', num2str(i), '.txt'], 'w');
+        fid = fopen([trajDir, filesep, 's', num2str(sNum), 't', num2str(i), 'v', num2str(dspVersion), '.txt'], 'w');
         pinx = 1;
-        px(pinx) = floor(sdat(inx(1),5)/20)+2;
-        py(pinx) = 14-(floor(sdat(inx(1),6)/20)+2);
-
+        
+        if dspVersion == '1'
+            px(pinx) = floor(sdat(inx(1),5)/20)+2;
+            py(pinx) = 14-(floor(sdat(inx(1),6)/20)+2);
+        elseif dspVersion == '2'
+            px(pinx) = 14-(floor(sdat(inx(1),5)/20)+2);
+            py(pinx) = floor(sdat(inx(1),6)/20)+2;
+        end
+        
         [px(pinx), py(pinx)] = checkMapIndex(px(pinx), py(pinx),map);
         sMap = map;
         sMap(px(pinx),py(pinx)) = 20;
         fprintf(fid,'%i %i\n', px(pinx), py(pinx));
+
         for j = 2:size(inx,1)
-            if (max(2,min(12,floor(sdat(inx(j),5)/20)+2)) ~= px(pinx)) || (max(2,min(12,14-(floor(sdat(inx(j),6)/20)+2))) ~= py(pinx))
-                pinx = pinx + 1;
-                px(pinx) = max(2,min(12,floor(sdat(inx(j),5)/20)+2));
-                py(pinx) = max(2,min(12,14-(floor(sdat(inx(j),6)/20)+2)));
-                fprintf(fid,'%i %i\n', px(pinx), py(pinx));
-                sMap(px(pinx),py(pinx)) = 20;
+            
+           
+            if dspVersion == '1'
+
+                if (max(2,min(12,floor(sdat(inx(j),5)/20)+2)) ~= px(pinx)) || (max(2,min(12,14-(floor(sdat(inx(j),6)/20)+2))) ~= py(pinx))
+                    pinx = pinx + 1;
+                    px(pinx) = max(2,min(12,floor(sdat(inx(j),5)/20)+2));
+                    py(pinx) = max(2,min(12,14-(floor(sdat(inx(j),6)/20)+2)));
+                    
+                end
+
+            elseif dspVersion == '2'
+
+                if (max(2,min(12,14-(floor(sdat(inx(j),5)/20)+2))) ~= px(pinx)) || (max(2,min(12,floor(sdat(inx(j),6)/20)+2)) ~= py(pinx))
+                    pinx = pinx + 1;
+                    px(pinx) = max(2,min(12,14-(floor(sdat(inx(j),5)/20)+2)));
+                    py(pinx) = max(2,min(12,floor(sdat(inx(j),6)/20)+2));
+                end
             end
+            
+            fprintf(fid,'%i %i\n', px(pinx), py(pinx));
+            sMap(px(pinx),py(pinx)) = 20;
+
         end
         fclose(fid);
         if dFlag
