@@ -8,7 +8,7 @@ function wrapper (trajDir, fnOut, templateDir)
 cd(templateDir);
 
 for dspVersion = 1:2
-    fnSubjectData = horzcat(templateDir, filesep, 'allTrajectories_', int2str(dspVersion), '.csv');
+    fnSubjectData = horzcat(trajDir, filesep, 'allTrajectories_', int2str(dspVersion), '.csv');
     fnMapCoords = horzcat(templateDir, filesep, 'dsp_coords_version_',int2str(dspVersion), '.txt');
     fnMapLMs = horzcat(templateDir, filesep, 'lmOnPath_version_',int2str(dspVersion),'.txt');
     createSubjectTrialData (fnSubjectData, fnMapCoords, fnMapLMs, trajDir);
