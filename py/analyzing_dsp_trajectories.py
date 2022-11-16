@@ -9,51 +9,186 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+import os
+import glob
 
-# Load in dataframe from UCSB Data
-df = pd.read_csv('G:\\My Drive\\SCANN Lab\\StevenWeisberg\\Moore_2020\\Materials\\DSP_Behavioral_Data\\DSP_Trajectories\\subject_data\\subject_data.txt',index_col=['subject','trial'])
+# We merge three datasets here. One is the trajectories data, providing strategies.
+# The second is success_dfs, which provide whether the trial was completed or not.
+# The third is meta_data, which gives info about which DSP version was which, and when the shortcut intervention was administered.
+
+# Excluded subjects
+# See experimenter sheet.
+excluded = []
+
+# Find the directory containing this file
+base_dir = os.path.dirname(os.path.realpath(__file__))
+
+# Where are the data
+traj_dir = os.path.join(base_dir, "..", "..", "..", "DSP_Trajectories")
+success_dir = os.path.join(
+    base_dir,
+    "..",
+    "..",
+    "..",
+    "DSP_RawData",
+    "Script_Output_DO_NOT_TOUCH",
+    "summary_dfs",
+)
+
+meta_df = pd.read_csv(os.path.join(base_dir, "..", "..", "..", "meta_data.csv"))
+
+## Load in success rates.
+input_files = glob.glob(os.path.join(success_dir, "*.csv"))
+
+success_df = pd.DataFrame()
+
+# For each file, we concatenate, but also want to grab the session number from the file name.
+for i in range(len(input_files)):
+    with open(input_files[i], "r") as f:
+        data = pd.read_csv(input_files[i], sep=",")
+    if input_files[i].split("\\")[-1].split("_")[2] == "1":
+        data["session"] = "1"
+    elif input_files[i].split("\\")[-1].split("_")[2] == "2":
+        data["session"] = "2"
+    else:
+        data["session"] = "1"
+
+    if data.loc[0, "ParticipantNo"] not in excluded:
+        success_df = pd.concat([success_df, data])
+
+success_df["success"] = np.where(success_df["Status"] == "Success", 1, 0)
+# A few wonky participant numbers.
+success_df["ParticipantNo"].replace(
+    ["12002_2", 210012, "21002_2"], ["12002", "21001", "21002"], inplace=True
+)
+
+# Groupby a few key variables.
+def f(df):
+    d = {}
+    d["success"] = df["success"].sum()
+    d["distance"] = df["Distance"].mean()
+    d["time_elapsed"] = df["Time Elapsed"].mean()
+    d["dsp_type"] = df["DSPType"].iloc[0]
+    d["total_trials"] = df["DSPType"].count()
+    d["session"] = df["session"].iloc[0]
+    return pd.Series(
+        d,
+        index=[
+            "success",
+            "distance",
+            "time_elapsed",
+            "dsp_type",
+            "total_trials",
+            "session",
+        ],
+    )
+
+
+success_wide = success_df.groupby(["ParticipantNo", "DSPType"], as_index=False).apply(f)
+
+# Make sure no one has duplicated data.
+success_wide = success_wide[success_wide["total_trials"] < 40]
+
+# Merge with the meta-data
+success_wide = success_wide.merge(
+    meta_df, left_on="ParticipantNo", right_on="participant_id"
+)
+
+
+## Trajectories data
+# Load in processed trajectories data
+traj_df = pd.read_csv(os.path.join(traj_dir, "frechet_by_trial.csv"))
+
+# Wonky subjects.
+traj_df["subject"].replace(
+    [120022, 210012, 210022], [12002, 21001, 21002], inplace=True
+)
+
 # Remove topological strategy
-df.drop(['Top'],axis=1,inplace=True)
+traj_df.drop(["Top"], axis=1, inplace=True)
 
-# Goofy subject names; replacing these for now.
-df.rename(index={120022: 12002, 210012: 21001, 210022: 21002},level='subject',inplace=True)
 
-df['oa'] = df.index.get_level_values('subject') > 12999
+traj_long = pd.melt(
+    traj_df.reset_index(),
+    id_vars=["subject"],
+    value_vars=["Sur", "Rte", "Rev"],
+    var_name="strategy",
+    value_name="distance",
+)
 
-# Determine whether there are ties or not
-df_sub = df[['Rte','Rev','Sur']]
+df_sub = traj_df[["Rte", "Rev", "Sur"]]
 idx = df_sub.eq(df_sub.min(axis=1), axis=0)
-df['strategy'] = np.where(df_sub.eq(df_sub.min(1),0).sum(1)>1,'tie',df_sub.idxmin(1))
-
-distance = df.groupby(['subject']).agg({'Rte': 'mean','Sur': 'mean','Rev':'mean','oa': 'first','strategy':'count'})
-
-distance_long = pd.melt(distance.reset_index(),id_vars=['subject','oa'],value_vars=['Sur','Rte','Rev'],var_name='strategy',value_name='distance')
-
-ax = sns.boxplot(x='strategy',y='distance',hue='oa',data=distance_long)
-ax = sns.swarmplot(x='strategy',y='distance',hue='oa',data=distance_long)
-
+traj_df["strategy"] = np.where(
+    df_sub.eq(df_sub.min(1), 0).sum(1) > 1, "tie", df_sub.idxmin(1)
+)
 
 
 # Pivot and get trial counts
-counts_long = df.groupby(['subject','strategy']).agg({'Sur': 'count','oa':'first'}).reset_index()
+traj_strats_long = (
+    traj_df.groupby(["subject", "strategy", "dspVersion"])
+    .agg({"Sur": "count"})
+    .reset_index()
+)  # Determine whether there are ties or not
 
-counts_long.rename(columns={"Sur": "trial_counts"},inplace=True)
+traj_strats_long.rename(columns={"Sur": "trial_counts"}, inplace=True)
 
-wide = counts_long.pivot(index='subject',columns='strategy',values='trial_counts')
-wide.fillna(0,inplace=True)
+traj_wide = traj_strats_long.pivot(
+    index=["subject", "dspVersion"], columns="strategy", values="trial_counts"
+).reset_index()
+traj_wide.fillna(0, inplace=True)
 
-# Assemble route index
-wide['route_all'] = wide['Rev'] + wide['Rte']# + wide['Rte,Rev']
+# Assemble place_response_index
+traj_wide["route_all"] = traj_wide["Rev"] + traj_wide["Rte"]  # + wide['Rte,Rev']
 
-# Plot route and surveys
-fig = sns.histplot(wide[['Sur','route_all']],stat='probability',bins=10)
-plt.xlabel('Trials')
-fig.spines['top'].set_visible(False)
-fig.spines['right'].set_visible(False)
-plt.legend(['Route','Survey'],frameon=False)
-fig.xaxis.set_major_formatter(plt.FormatStrFormatter('%d'))
-plt.show(fig)
+traj_wide["place_resp_index"] = traj_wide["Sur"] / (
+    traj_wide["Sur"] + traj_wide["route_all"]
+)
 
+# Merge all data
+all_df = success_wide.merge(
+    traj_wide, left_on=["ParticipantNo", "DSPType"], right_on=["subject", "dspVersion"]
+)
 
-ax1 = sns.boxplot(x='strategy',y='trial_counts',hue='oa',data=counts_long)
-ax1 = sns.swarmplot(x='strategy',y='trial_counts',hue='oa',data=counts_long)
+## Plots
+
+plt.figure()
+ax3 = sns.boxplot(
+    x="env2_gtg_sc",
+    y="success",
+    hue="older_younger",
+    data=success_wide[success_wide["session"] == "2"],
+)
+plt.show()
+plt.figure()
+ax3 = sns.boxplot(
+    x="older_younger",
+    y="success",
+    hue="older_younger",
+    data=success_wide[success_wide["session"] == "1"],
+)
+plt.show()
+
+plt.figure()
+sns.boxplot(
+    x="env2_gtg_sc",
+    y="place_resp_index",
+    hue="older_younger",
+    data=all_df[all_df["session"] == "2"],
+)
+plt.figure()
+sns.scatterplot(
+    x="success",
+    y="place_resp_index",
+    hue="env2_gtg_sc",
+    data=all_df[all_df["session"] == "2"],
+)
+plt.show()
+
+plt.figure()
+sns.scatterplot(
+    x="success",
+    y="place_resp_index",
+    hue="gender",
+    data=all_df[all_df["session"] == "1"],
+)
+plt.show()
